@@ -56,37 +56,43 @@ class QuestionDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_question_detail)
 
-        // 渡ってきたQuestionのオブジェクトを保持する
-        val extras = intent.extras
-        mQuestion = extras!!.get("question") as Question
+            // 渡ってきたQuestionのオブジェクトを保持する
+            val extras = intent.extras
+            mQuestion = extras!!.get("question") as Question
 
-        title = mQuestion.title
+            title = mQuestion.title
 
-        // ListViewの準備
-        mAdapter = QuestionDetailListAdapter(this, mQuestion)
-        listView.adapter = mAdapter
-        mAdapter.notifyDataSetChanged()
+            // ListViewの準備
+            mAdapter = QuestionDetailListAdapter(this, mQuestion)
+            listView.adapter = mAdapter
+            mAdapter.notifyDataSetChanged()
 
-        fab.setOnClickListener {
-            // ログイン済みのユーザーを取得する
-            val user = FirebaseAuth.getInstance().currentUser
+            fab.setOnClickListener {
+                // ログイン済みのユーザーを取得する
+                val user = FirebaseAuth.getInstance().currentUser
 
-            if (user == null) {
-                // ログインしていなければログイン画面に遷移させる
-                val intent = Intent(applicationContext, LoginActivity::class.java)
-                startActivity(intent)
-            } else {
-                // Questionを渡して回答作成画面を起動する
-                // --- ここから ---
-                val intent = Intent(applicationContext, AnswerSendActivity::class.java)
-                intent.putExtra("question", mQuestion)
-                startActivity(intent)
-                // --- ここまで ---
+                if (user == null) {
+                    // ログインしていなければログイン画面に遷移させる
+                    val intent = Intent(applicationContext, LoginActivity::class.java)
+                    startActivity(intent)
+                } else {
+                    // Questionを渡して回答作成画面を起動する
+                    // --- ここから ---
+                    val intent = Intent(applicationContext, AnswerSendActivity::class.java)
+                    intent.putExtra("question", mQuestion)
+                    startActivity(intent)
+                    // --- ここまで ---
+                }
             }
-        }
+        //ログインしていなときはfavoriteを消す。
+        val user = FirebaseAuth.getInstance().currentUser
+        if (user == null) {
+            favorite.hide()
 
-        val dataBaseReference = FirebaseDatabase.getInstance().reference
-        mAnswerRef = dataBaseReference.child(ContentsPATH).child(mQuestion.genre.toString()).child(mQuestion.questionUid).child(AnswersPATH)
-        mAnswerRef.addChildEventListener(mEventListener)
+            val dataBaseReference = FirebaseDatabase.getInstance().reference
+            mAnswerRef = dataBaseReference.child(ContentsPATH).child(mQuestion.genre.toString())
+                .child(mQuestion.questionUid).child(AnswersPATH)
+            mAnswerRef.addChildEventListener(mEventListener)
+        }
     }
 }

@@ -6,7 +6,6 @@ import android.util.Base64
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toolbar
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
 import com.google.android.material.navigation.NavigationView
@@ -20,7 +19,6 @@ import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-    private lateinit var mToolbar: Toolbar
     private var mGenre = 0
 
     // --- ここから ---
@@ -190,6 +188,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else if (id == R.id.nav_compter) {
             toolbar.title = getString(R.string.menu_compter_label)
             mGenre = 4
+
+            //課題対応
         } else if (id == R.id.nav_favorite) {
             toolbar.title = getString(R.string.menu_favorite_label)
             mGenre = 5
