@@ -46,6 +46,7 @@ class AnswerSendActivity : AppCompatActivity(), View.OnClickListener, DatabaseRe
         im.hideSoftInputFromWindow(v.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
 
         val dataBaseReference = FirebaseDatabase.getInstance().reference
+        //課題対応　.child(mQuestion.faborite.toString())　追加
         val answerRef = dataBaseReference.child(ContentsPATH).child(mQuestion.genre.toString()).child(mQuestion.questionUid).child(AnswersPATH)
 
         val data = HashMap<String, String>()

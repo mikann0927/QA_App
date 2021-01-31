@@ -147,6 +147,9 @@ class QuestionSendActivity : AppCompatActivity(), View.OnClickListener, Database
             data["body"] = body
             data["name"] = name!!
 
+            //課題対応　data["favorite"] = 0.toString() 修正必要なし
+            //data["favorite"] = 0.toString()
+
             // 添付画像を取得する
             val drawable = imageView.drawable as? BitmapDrawable
 

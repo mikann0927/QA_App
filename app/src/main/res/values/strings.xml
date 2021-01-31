@@ -28,7 +28,7 @@
     <string name="menu_health_label">健康</string>
     <string name="menu_compter_label">コンピューター</string>
     <!-- 課題対応　お気に入り -->
-    <string name="menu_favorite_label">お気に入り</string>
+    <string name="menu_favorite_label">お気に入り(削除は２回タップ</string>
 
     <!-- 設定画面用文字列 -->
     <string name="settings_titile">設定</string>

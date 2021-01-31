@@ -6,12 +6,21 @@ import android.os.Bundle
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import kotlinx.android.synthetic.main.activity_question_detail.*
+import android.util.Base64
+import android.util.Log
+import android.view.View
+import com.google.firebase.database.ValueEventListener
+import jp.techacademy.moe.hatori.qa_app_kotlin.Favorites
 
 class QuestionDetailActivity : AppCompatActivity() {
 
     private lateinit var mQuestion: Question
     private lateinit var mAdapter: QuestionDetailListAdapter
     private lateinit var mAnswerRef: DatabaseReference
+
+    //課題対応2
+    private var favoriteList = ArrayList<Favorites>()
+    var  favoriteFlag = false
 
     private val mEventListener = object : ChildEventListener {
         override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
@@ -62,37 +71,98 @@ class QuestionDetailActivity : AppCompatActivity() {
 
             title = mQuestion.title
 
-            // ListViewの準備
-            mAdapter = QuestionDetailListAdapter(this, mQuestion)
-            listView.adapter = mAdapter
-            mAdapter.notifyDataSetChanged()
+        // ログイン済みのユーザーを取得する
+        val user = FirebaseAuth.getInstance().currentUser
+        val dataBaseReference = FirebaseDatabase.getInstance().reference
 
-            fab.setOnClickListener {
-                // ログイン済みのユーザーを取得する
-                val user = FirebaseAuth.getInstance().currentUser
+        //課題対応　ログインしていなときはfavoritebuttonを消す。
+        if( user == null) {
+            favoritebutton.visibility = View.INVISIBLE
+        } else {
 
-                if (user == null) {
-                    // ログインしていなければログイン画面に遷移させる
-                    val intent = Intent(applicationContext, LoginActivity::class.java)
-                    startActivity(intent)
-                } else {
-                    // Questionを渡して回答作成画面を起動する
-                    // --- ここから ---
-                    val intent = Intent(applicationContext, AnswerSendActivity::class.java)
-                    intent.putExtra("question", mQuestion)
-                    startActivity(intent)
-                    // --- ここまで ---
+            val favoriteRef = dataBaseReference.child(FavoritePATH).child(user.uid)
+
+            //課題対応 Firebaseのfavoriteを読み込む
+            favoriteRef.addValueEventListener(object : ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+
+                    //課題対応　Userのfavoriteをリストで保持する
+                    val favoriteResult = snapshot.value as Map<String, String>?
+
+                    if (favoriteResult != null){
+                        for (key in favoriteResult.keys){
+                            val temp = favoriteResult[key] as Map<String, String>
+                            val favoriteGenre = temp["genre"] ?: ""
+                            val favorite = Favorites(key,favoriteGenre)
+                            favoriteList.add(favorite)
+
+                        }
+                    }
+
+                    //お気に入りが登録されてたら★無ければ☆
+                    if (favoriteList != null){
+                        for ( i in favoriteList.indices){
+                            if (favoriteList[i].uid == mQuestion.questionUid){
+                                favoritebutton.setImageResource(R.drawable.ic_star_24)
+                                favoriteFlag = true
+                            }
+                        }
+                    }else {favoritebutton.setImageResource(R.drawable.ic_star_border_24)
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {
+                }
+            })
+
+            favoritebutton.apply{
+                setOnClickListener {
+                    if (!favoriteFlag) {
+                        //課題対応押されたら一覧に登録する処理　Firebaseを更新する処理をかく
+                        val data = HashMap<String, String>()
+                        data["genre"] = mQuestion.genre.toString() ?: ""
+                        data["title"] = mQuestion.title ?: ""
+                        data["body"] = mQuestion.body ?: ""
+                        data["name"] = mQuestion.name ?: ""
+                        data["uid"] = mQuestion.uid ?: ""
+                        val imageBytes = mQuestion.imageBytes
+                        val bitmapString = Base64.encodeToString(imageBytes, Base64.DEFAULT)
+                        data["image"] = bitmapString
+                        favoriteRef.child(mQuestion.questionUid).setValue(data)
+                        favoritebutton.setImageResource(R.drawable.ic_star_24)
+
+                    }else{
+                        favoriteRef.removeValue()
+                        favoritebutton.setImageResource(R.drawable.ic_star_border_24)
+                        Log.d("test","消したい")
+                    }
                 }
             }
-        //ログインしていなときはfavoriteを消す。
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user == null) {
-            favorite.hide()
-
-            val dataBaseReference = FirebaseDatabase.getInstance().reference
-            mAnswerRef = dataBaseReference.child(ContentsPATH).child(mQuestion.genre.toString())
-                .child(mQuestion.questionUid).child(AnswersPATH)
-            mAnswerRef.addChildEventListener(mEventListener)
         }
+
+        title = mQuestion.title
+
+        // ListViewの準備
+        mAdapter = QuestionDetailListAdapter(this, mQuestion)
+        listView.adapter = mAdapter
+        mAdapter.notifyDataSetChanged()
+
+        fab.setOnClickListener {
+            if (user == null) {
+                // ログインしていなければログイン画面に遷移させる
+                val intent = Intent(applicationContext, LoginActivity::class.java)
+                startActivity(intent)
+            } else {
+                // Questionを渡して回答作成画面を起動する
+                val intent = Intent(applicationContext, AnswerSendActivity::class.java)
+                intent.putExtra("question", mQuestion)
+                startActivity(intent)
+            }
+        }
+
+        mAnswerRef = dataBaseReference.child(ContentsPATH).child(mQuestion.genre.toString()).child(mQuestion.questionUid).child(AnswersPATH)
+        mAnswerRef.addChildEventListener(mEventListener)
     }
+
+
+
 }

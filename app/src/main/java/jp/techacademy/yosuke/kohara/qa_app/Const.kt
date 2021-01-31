@@ -13,4 +13,4 @@ const val AnswersPATH = "answers"
 const val NameKEY = "name"
 
 //お気に入り　課題対応
-const val FavoritesPath = "favorites"
+const val FavoritePATH = "favorites"
